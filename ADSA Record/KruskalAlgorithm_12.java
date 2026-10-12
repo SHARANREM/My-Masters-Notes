@@ -1,98 +1,71 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+/*
+data.txt content
+1
+2
+3
+4
+5
+1 2 10
+1 3 6
+1 4 5
+2 3 15
+3 4 4
+4 5 7
+2 5 8
+
+*/
+
+import java.io.*;
 import java.util.*;
 
 class Edge implements Comparable<Edge> {
     int src, dest, weight;
-
-    Edge(int src, int dest, int weight) {
-        this.src = src;
-        this.dest = dest;
-        this.weight = weight;
-    }
-
-    public int compareTo(Edge e) {
-        return Integer.compare(this.weight, e.weight);
-    }
+    Edge(int s, int d, int w) { src = s; dest = d; weight = w; }
+    public int compareTo(Edge e) { return Integer.compare(weight, e.weight); }
 }
 
 class DisjointSet {
-    Map<Integer, Integer> parent = new HashMap<>();
-    Map<Integer, Integer> rank = new HashMap<>();
+    Map<Integer, Integer> parent = new HashMap<>(), rank = new HashMap<>();
 
-    void makeSet(Set<Integer> vertices) {
-        for (int v : vertices) {
-            parent.put(v, v);
-            rank.put(v, 0);
-        }
+    void makeSet(Set<Integer> v) {
+        for (int x : v) { parent.put(x, x); rank.put(x, 0); }
     }
 
-    int find(int v) {
-        if (parent.get(v) != v)
-            parent.put(v, find(parent.get(v)));
-
-        return parent.get(v);
+    int find(int x) {
+        if (parent.get(x) != x) parent.put(x, find(parent.get(x)));
+        return parent.get(x);
     }
 
     void union(int a, int b) {
-        int rootA = find(a);
-        int rootB = find(b);
-
-        if (rootA == rootB)
-            return;
-
-        if (rank.get(rootA) < rank.get(rootB)) {
-            parent.put(rootA, rootB);
-        } else if (rank.get(rootA) > rank.get(rootB)) {
-            parent.put(rootB, rootA);
-        } else {
-            parent.put(rootB, rootA);
-            rank.put(rootA, rank.get(rootA) + 1);
+        int x = find(a), y = find(b);
+        if (x == y) return;
+        if (rank.get(x) < rank.get(y)) parent.put(x, y);
+        else {
+            parent.put(y, x);
+            if (rank.get(x).equals(rank.get(y))) rank.put(x, rank.get(x) + 1);
         }
     }
 }
 
 public class KruskalAlgorithm_12 {
-
     public static void main(String[] args) {
-
-        String fileName = "data.txt";
-
         Set<Integer> vertices = new HashSet<>();
         List<Edge> edges = new ArrayList<>();
 
-        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
-
+        try (BufferedReader br = new BufferedReader(new FileReader("data.txt"))) {
             String line;
-
             while ((line = br.readLine()) != null) {
+                String[] p = line.trim().split("\\s+");
+                if (line.trim().isEmpty()) continue;
 
-                line = line.trim();
-
-                if (line.isEmpty())
-                    continue;
-
-                String[] parts = line.split("\\s+");
-
-                if (parts.length == 1) {
-
-                    int vertex = Integer.parseInt(parts[0]);
-                    vertices.add(vertex);
-
-                } else if (parts.length == 3) {
-
-                    int src = Integer.parseInt(parts[0]);
-                    int dest = Integer.parseInt(parts[1]);
-                    int weight = Integer.parseInt(parts[2]);
-
-                    edges.add(new Edge(src, dest, weight));
-
-                } else {
-                    System.out.println("Invalid line: " + line);
-                }
+                if (p.length == 1) vertices.add(Integer.parseInt(p[0]));
+                else if (p.length == 3) {
+                    int a = Integer.parseInt(p[0]), b = Integer.parseInt(p[1]);
+                    vertices.add(a);
+                    vertices.add(b);
+                    edges.add(new Edge(a, b, Integer.parseInt(p[2])));
+                } else System.out.println("Invalid line: " + line);
             }
-
         } catch (IOException e) {
             System.out.println("Error reading data.txt");
             return;
@@ -100,41 +73,24 @@ public class KruskalAlgorithm_12 {
 
         DisjointSet ds = new DisjointSet();
         ds.makeSet(vertices);
-
         Collections.sort(edges);
 
-        List<Edge> mst = new ArrayList<>();
-        int totalWeight = 0;
-
-        for (Edge edge : edges) {
-
-            int rootSrc = ds.find(edge.src);
-            int rootDest = ds.find(edge.dest);
-
-            if (rootSrc != rootDest) {
-
-                mst.add(edge);
-                totalWeight += edge.weight;
-
-                ds.union(edge.src, edge.dest);
-            }
-
-            if (mst.size() == vertices.size() - 1)
-                break;
-        }
-
+        int total = 0, count = 0;
         System.out.println("Edges in Minimum Spanning Tree:");
 
-        for (Edge edge : mst) {
-            System.out.println(
-                    edge.src + " - " + edge.dest +
-                            " : " + edge.weight);
+        for (Edge e : edges) {
+            if (ds.find(e.src) != ds.find(e.dest)) {
+                ds.union(e.src, e.dest);
+                System.out.println(e.src + " - " + e.dest + " : " + e.weight);
+                total += e.weight;
+                count++;
+                if (count == vertices.size() - 1) break;
+            }
         }
 
-        if (mst.size() == vertices.size() - 1) {
-            System.out.println("Total Weight: " + totalWeight);
-        } else {
+        if (count == vertices.size() - 1)
+            System.out.println("Total Weight: " + total);
+        else
             System.out.println("Graph is disconnected. MST cannot be formed.");
-        }
     }
 }
