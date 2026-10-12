@@ -1,214 +1,125 @@
+
 import java.util.Scanner;
 
 class TreeNode {
-    int data;
+    int data, height = 1;
     TreeNode left, right;
-    int height;
-
-    TreeNode(int data) {
-        this.data = data;
-        this.height = 1;
-    }
+    TreeNode(int d) { data = d; }
 }
 
 public class AVLTree_9 {
+    static int h(TreeNode n) { return n == null ? 0 : n.height; }
+    static int bal(TreeNode n) { return n == null ? 0 : h(n.left) - h(n.right); }
+    static void update(TreeNode n) { n.height = 1 + Math.max(h(n.left), h(n.right)); }
 
-    static int height(TreeNode n) {
-        return n == null ? 0 : n.height;
-    }
-
-    static int getBalance(TreeNode n) {
-        return n == null ? 0 : height(n.left) - height(n.right);
-    }
-
-    static TreeNode rightRotate(TreeNode y) {
-        TreeNode x = y.left;
-        TreeNode T2 = x.right;
-
-        x.right = y;
-        y.left = T2;
-
-        y.height = Math.max(height(y.left), height(y.right)) + 1;
-        x.height = Math.max(height(x.left), height(x.right)) + 1;
-
+    static TreeNode right(TreeNode y) {
+        TreeNode x = y.left, t = x.right;
+        x.right = y; y.left = t;
+        update(y); update(x);
         return x;
     }
 
-    static TreeNode leftRotate(TreeNode x) {
-        TreeNode y = x.right;
-        TreeNode T2 = y.left;
-
-        y.left = x;
-        x.right = T2;
-
-        x.height = Math.max(height(x.left), height(x.right)) + 1;
-        y.height = Math.max(height(y.left), height(y.right)) + 1;
-
+    static TreeNode left(TreeNode x) {
+        TreeNode y = x.right, t = y.left;
+        y.left = x; x.right = t;
+        update(x); update(y);
         return y;
     }
 
-    static TreeNode insert(TreeNode root, int data) {
-        if (root == null)
-            return new TreeNode(data);
-
-        if (data < root.data)
-            root.left = insert(root.left, data);
-        else if (data > root.data)
-            root.right = insert(root.right, data);
-        else
-            return root;
-
-        root.height = Math.max(height(root.left), height(root.right)) + 1;
-
-        int balance = getBalance(root);
-
-        if (balance > 1 && data < root.left.data)
-            return rightRotate(root);
-
-        if (balance < -1 && data > root.right.data)
-            return leftRotate(root);
-
-        if (balance > 1 && data > root.left.data) {
-            root.left = leftRotate(root.left);
-            return rightRotate(root);
+    static TreeNode insert(TreeNode r, int d) {
+        if (r == null) return new TreeNode(d);
+        if (d < r.data) r.left = insert(r.left, d);
+        else if (d > r.data) r.right = insert(r.right, d);
+        else return r;
+        update(r);
+        int b = bal(r);
+        if (b > 1) {
+            if (d > r.left.data) r.left = left(r.left);
+            return right(r);
         }
-
-        if (balance < -1 && data < root.right.data) {
-            root.right = rightRotate(root.right);
-            return leftRotate(root);
+        if (b < -1) {
+            if (d < r.right.data) r.right = right(r.right);
+            return left(r);
         }
-
-        return root;
+        return r;
     }
 
-    static TreeNode minValueNode(TreeNode root) {
-        TreeNode current = root;
-
-        while (current.left != null)
-            current = current.left;
-
-        return current;
+    static TreeNode min(TreeNode r) {
+        while (r.left != null) r = r.left;
+        return r;
     }
 
-    static TreeNode delete(TreeNode root, int data) {
-        if (root == null)
-            return root;
-
-        if (data < root.data)
-            root.left = delete(root.left, data);
-        else if (data > root.data)
-            root.right = delete(root.right, data);
+    static TreeNode delete(TreeNode r, int d) {
+        if (r == null) return null;
+        if (d < r.data) r.left = delete(r.left, d);
+        else if (d > r.data) r.right = delete(r.right, d);
+        else if (r.left == null || r.right == null)
+            r = r.left != null ? r.left : r.right;
         else {
-            if (root.left == null || root.right == null) {
-                TreeNode temp;
-
-                if (root.left != null)
-                    temp = root.left;
-                else
-                    temp = root.right;
-
-                if (temp == null)
-                    root = null;
-                else
-                    root = temp;
-            } else {
-                TreeNode temp = minValueNode(root.right);
-                root.data = temp.data;
-                root.right = delete(root.right, temp.data);
-            }
+            TreeNode t = min(r.right);
+            r.data = t.data;
+            r.right = delete(r.right, t.data);
         }
-
-        if (root == null)
-            return root;
-
-        root.height = Math.max(height(root.left), height(root.right)) + 1;
-
-        int balance = getBalance(root);
-
-        if (balance > 1 && getBalance(root.left) >= 0)
-            return rightRotate(root);
-
-        if (balance > 1 && getBalance(root.left) < 0) {
-            root.left = leftRotate(root.left);
-            return rightRotate(root);
+        if (r == null) return null;
+        update(r);
+        int b = bal(r);
+        if (b > 1) {
+            if (bal(r.left) < 0) r.left = left(r.left);
+            return right(r);
         }
-
-        if (balance < -1 && getBalance(root.right) <= 0)
-            return leftRotate(root);
-
-        if (balance < -1 && getBalance(root.right) > 0) {
-            root.right = rightRotate(root.right);
-            return leftRotate(root);
+        if (b < -1) {
+            if (bal(r.right) > 0) r.right = right(r.right);
+            return left(r);
         }
-
-        return root;
+        return r;
     }
 
-    static void preorder(TreeNode root) {
-        if (root == null)
-            return;
-
-        System.out.print(root.data + " ");
-        preorder(root.left);
-        preorder(root.right);
+    static void preorder(TreeNode r) {
+        if (r != null) {
+            System.out.print(r.data + " ");
+            preorder(r.left); preorder(r.right);
+        }
     }
 
-    static void inorder(TreeNode root) {
-        if (root == null)
-            return;
-
-        inorder(root.left);
-        System.out.print(root.data + " ");
-        inorder(root.right);
+    static void inorder(TreeNode r) {
+        if (r != null) {
+            inorder(r.left); System.out.print(r.data + " "); inorder(r.right);
+        }
     }
 
-    static void postorder(TreeNode root) {
-        if (root == null)
-            return;
-
-        postorder(root.left);
-        postorder(root.right);
-        System.out.print(root.data + " ");
+    static void postorder(TreeNode r) {
+        if (r != null) {
+            postorder(r.left); postorder(r.right); System.out.print(r.data + " ");
+        }
     }
 
     public static void main(String[] args) {
         Scanner s = new Scanner(System.in);
-
         TreeNode root = null;
 
-        System.out.print("Enter the Number of Nodes: ");
-        int n = s.nextInt();
+        while (true) {
+            System.out.println("\n1.Create  \n2.Insert  \n3.Delete  \n4.Preorder\n5.Inorder  \n6.Postorder  \n7.Exit");
+            System.out.print("Enter choice: ");
+            int ch = s.nextInt();
 
-        System.out.println("Enter " + n + " Values:");
-
-        for (int i = 0; i < n; i++)
-            root = insert(root, s.nextInt());
-
-        System.out.println("\nPreorder Traversal:");
-        preorder(root);
-
-        System.out.println("\nInorder Traversal:");
-        inorder(root);
-
-        System.out.println("\nPostorder Traversal:");
-        postorder(root);
-
-        System.out.print("\nEnter value to delete: ");
-        int value = s.nextInt();
-
-        root = delete(root, value);
-
-        System.out.println("\nAfter Deletion:");
-
-        System.out.println("Preorder Traversal:");
-        preorder(root);
-
-        System.out.println("\nInorder Traversal:");
-        inorder(root);
-
-        System.out.println("\nPostorder Traversal:");
-        postorder(root);
-
-        s.close();
+            switch (ch) {
+                case 1:
+                case 2:
+                    System.out.print("Enter value: ");
+                    root = insert(root, s.nextInt());
+                    System.out.println("Inserted");
+                    break;
+                case 3:
+                    System.out.print("Enter value to delete: ");
+                    root = delete(root, s.nextInt());
+                    System.out.println("Deleted if present");
+                    break;
+                case 4: preorder(root); System.out.println(); break;
+                case 5: inorder(root); System.out.println(); break;
+                case 6: postorder(root); System.out.println(); break;
+                case 7: s.close(); return;
+                default: System.out.println("Invalid Choice");
+            }
+        }
     }
 }
