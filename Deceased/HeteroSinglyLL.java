@@ -1,193 +1,115 @@
 
-import java.util.Scanner;
-
-class HeteroSinglyLL {
-
-    // Node class
-    /*static class Node {
-        Object data;
-        Node next;
-
-        Node(Object data) {
-            this.data = data;
-            this.next = null;
-        }
-    }*/
-
-    static class Node{
-		Object data;
-		Node next;
-		Node(Object data){
-			this.data = data;
-			this.next = null;
-		}
+class Node{
+	Object data;
+	Node next;
+	Node(Object data){
+		this.data = data;
 	}
+}
 
-	static Node head = null;
-	static boolean created = false;
+class SingleLL{
 
-	static void create() {
-		if (!created) {
+	Node head;
+	int size = 0;
+	boolean created=false;
+	void create(){
+		if(!created){
+			System.out.println("Created");
 			created = true;
-			System.out.println("List Created");
-		} else {
-			System.out.println("List Already Created");
+		}
+		else{
+			System.out.println("Already Created");
 		}
 	}
 
-    // Insert at the end
-    static void insert(Object data) {
-        Node newNode = new Node(data);
+	void insert(Object data){
+		Node newNode = new Node(data);
+		if(!created){System.out.println("Create First!!");return;}
+		if(head == null){
+			head = newNode;
+			return;
+		}
 
-        if (head == null) {
-            head = newNode;
-        } else {
-            Node temp = head;
+		Node temp = head;
 
-            while (temp.next != null) {
-                temp = temp.next;
-            }
+		while(temp.next!=null){
+			temp = temp.next;
+		}
 
-            temp.next = newNode;
-        }
+		temp.next = newNode;
 
-        System.out.println("Inserted");
-    }
+		System.out.println("Inserted");
+		size++;
+	}
 
-    // Delete by index
-    static void delete(int index) {
-        if (head == null) {
-            System.out.println("List is Empty");
-            return;
-        }
+	void delete(int index){
+		if(!created){System.out.println("Create First!!");return;}
+		if(isEmpty()){
+			System.out.println("The list is Empty!");
+			return;
+		}
 
-        if (index < 0) {
-            System.out.println("Invalid Index");
-            return;
-        }
+		if(index<0 || index>=size){
+			System.out.println("The Index is not within the range");
+			return;
+		}
 
-        if (index == 0) {
-            head = head.next;
-            System.out.println("Deleted");
-            return;
-        }
+		if(index == 0){
+			head = head.next;
+		}
+		else{
+			Node temp = head;
+			for(int i = 0; i<index-1 ; i++){
+				temp = temp.next;
+			}
+			temp.next = temp.next.next;
+		}
+		size--;
+		System.out.println("Deleted");
+	}
 
-        Node temp = head;
+	void traverse(){
+		if(!created){System.out.println("Create First!!");return;}
+		if(isEmpty()){
+			System.out.println("The list is empty");
+			return;
+		}
+		Node temp = head;
+		while(temp != null){
+			System.out.print(temp.data + " --> ");
+			temp = temp.next;
+		}
+		System.out.println("null");
+	}
 
-        for (int i = 0; temp != null && i < index - 1; i++) {
-            temp = temp.next;
-        }
+	boolean	 isEmpty(){
+		if(!created){System.out.println("Create First!!");return false;}
+		if(size<0){
+			return true;
+		}return false;
+	}
+}
 
-        if (temp == null || temp.next == null) {
-            System.out.println("Invalid Index");
-        } else {
-            temp.next = temp.next.next;
-            System.out.println("Deleted");
-        }
-    }
+class SLLS{
+	public static void main(String[] args){
+		SingleLL list = new SingleLL();
+		list.insert(10);
+		list.traverse();
+		list.delete(2);
+        list.create();
 
+        list.insert(10);
+        list.insert("Hi");
+        list.insert(30);
+        list.insert(40);
 
+        list.traverse();
 
-    // Display the list
-    static void traverse() {
-        if (head == null) {
-            System.out.println("List is Empty");
-            return;
-        }
+        list.delete(2);
+		list.delete(2);
 
-        Node temp = head;
+        list.traverse();
 
-        while (temp != null) {
-            System.out.print(temp.data + " --> ");
-            temp = temp.next;
-        }
-
-        System.out.println("null");
-    }
-
-    public static void main(String[] args) {
-        Scanner s = new Scanner(System.in);
-        int choice;
-        boolean created = false;
-
-        do {
-            System.out.println("\n1.Create  2.Insert  3.Delete  4.Traverse  5.Exit");
-            System.out.print("Enter choice: ");
-            choice = s.nextInt();
-
-            switch (choice) {
-                case 1:
-                    if (!created) {
-                        created = true;
-                        System.out.println("List Created");
-                    } else {
-                        System.out.println("List Already Created");
-                    }
-                    break;
-
-                case 2:
-                    if (!created) {
-                        System.out.println("Create the list first");
-                        break;
-                    }
-
-                    System.out.println(
-                        "0.Integer  1.String  2.Boolean  3.Float  4.Double"
-                    );
-                    System.out.print("Enter data type: ");
-                    int type = s.nextInt();
-
-                    System.out.print("Enter value: ");
-
-                    switch (type) {
-                        case 0:
-                            insert(s.nextInt());
-                            break;
-                        case 1:
-                            insert(s.next());
-                            break;
-                        case 2:
-                            insert(s.nextBoolean());
-                            break;
-                        case 3:
-                            insert(s.nextFloat());
-                            break;
-                        case 4:
-                            insert(s.nextDouble());
-                            break;
-                        default:
-                            System.out.println("Invalid Data Type");
-                    }
-                    break;
-
-                case 3:
-                    if (!created) {
-                        System.out.println("Create the list first");
-                        break;
-                    }
-
-                    System.out.print("Enter index to delete: ");
-                    delete(s.nextInt());
-                    break;
-
-                case 4:
-                    if (!created) {
-                        System.out.println("Create the list first");
-                    } else {
-                        traverse();
-                    }
-                    break;
-
-                case 5:
-                    System.out.println("Exiting...");
-                    break;
-
-                default:
-                    System.out.println("Invalid Choice");
-            }
-
-        } while (choice != 5);
-
-        s.close();
-    }
+        System.out.println("Size: " + list.size);
+	}
 }
